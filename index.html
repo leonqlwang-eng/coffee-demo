@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>迪卡侬咖啡小程序 - 积分兑换原型</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #0057A0;
+            --primary-light: #E8F1FA;
+            --secondary-color: #FF6B00;
+            --success-color: #00A650;
+            --warning-color: #FF9500;
+            --error-color: #FF3B30;
+            --text-primary: #1D1D1F;
+            --text-secondary: #6E6E73;
+            --text-tertiary: #AEAEB2;
+            --bg-primary: #F5F5F7;
+            --bg-white: #FFFFFF;
+            --border-color: #E5E5EA;
+            --shadow: 0 2px 8px rgba(0,0,0,0.08);
+            --shadow-lg: 0 4px 16px rgba(0,0,0,0.12);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        /* 手机容器模拟 */
+        .phone-container {
+            max-width: 390px;
+            margin: 0 auto;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 状态栏 */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 16px;
+            background: var(--bg-white);
+            font-size: 12px;
+            color: var(--text-primary);
+        }
+
+        /* 导航栏 */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--bg-white);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-title {
+            font-size: 17px;
+            font-weight: 600;
+        }
+
+        .navbar-back {
+            color: var(--primary-color);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* 页面容器 */
+        .page {
+            display: none;
+            padding-bottom: 80px;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* 优惠券页面 */
+        .coupon-page {
+            background: var(--bg-primary);
+        }
+
+        /* 积分余额卡片 */
+        .points-card {
+            margin: 16px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, #0077CC 100%);
+            border-radius: 16px;
+            color: white;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .points-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .points-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .points-record-link {
+            font-size: 13px;
+            opacity: 0.8;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .points-value {
+            font-size: 36px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .points-unit {
+            font-size: 16px;
+            font-weight: 400;
+            margin-left: 4px;
+        }
+
+        /* 分类切换 */
+        .category-tabs {
+            display: flex;
+            margin: 0 16px 16px;
+            background: var(--bg-white);
+            border-radius: 12px;
+            padding: 4px;
+            box-shadow: var(--shadow);
+        }
+
+        .category-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px 0;
+            font-size: 14px;
+            color: var(--text-secondary);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .category-tab.active {
+            background: var(--primary-color);
+            color: white;
+            font-weight: 500;
+        }
+
+        /* 商品列表 */
+        .products-section {
+            margin: 0 16px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .product-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .product-card {
+            background: var(--bg-white);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            gap: 12px;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s;
+        }
+
+        .product-card:active {
+            transform: scale(0.98);
+        }
+
+        .product-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            background: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            flex-shrink: 0;
+        }
+
+        .product-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .product-name {
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .product-rules {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .product-points {
+            display: flex;
+            align-items: baseline;
+            gap: 2px;
+        }
+
+        .points-number {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        .points-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .product-stock {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .stock-sufficient {
+            background: #E8F5E9;
+            color: var(--success-color);
+        }
+
+        .stock-low {
+            background: #FFF3E0;
+            color: var(--warning-color);
+        }
+
+        .stock-empty {
+            background: #FFEBEE;
+            color: var(--error-color);
+        }
+
+        .exchange-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .exchange-btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .exchange-btn-primary:active {
+            background: #004488;
+        }
+
+        .exchange-btn-disabled {
+            background: var(--border-color);
+            color: var(--text-tertiary);
+            cursor: not-allowed;
+        }
+
+        /* 我的优惠券区域 */
+        .my-coupons-section {
+            margin: 24px 16px 0;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .coupon-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .coupon-item {
+            background: var(--bg-white);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        .coupon-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            background: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .coupon-info {
+            flex: 1;
+        }
+
+        .coupon-name {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .coupon-expiry {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .coupon-status {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .status-unused {
+            background: #E8F5E9;
+            color: var(--success-color);
+        }
+
+        .status-used {
+            background: var(--border-color);
+            color: var(--text-tertiary);
+        }
+
+        .status-expired {
+            background: #FFEBEE;
+            color: var(--error-color);
+        }
+
+        /* 弹窗 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-white);
+            border-radius: 16px;
+            width: 85%;
+            max-width: 340px;
+            padding: 24px;
+            box-shadow: var(--shadow-lg);
+            animation: modalIn 0.2s ease-out;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-title {
+            font-size: 17px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .modal-content {
+            margin-bottom: 20px;
+        }
+
+        .modal-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+        }
+
+        .modal-label {
+            color: var(--text-secondary);
+        }
+
+        .modal-value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .modal-value.highlight {
+            color: var(--secondary-color);
+        }
+
+        .modal-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 12px 0;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .modal-btn-cancel {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .modal-btn-cancel:active {
+            background: var(--border-color);
+        }
+
+        .modal-btn-confirm {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .modal-btn-confirm:active {
+            background: #004488;
+        }
+
+        .modal-btn-single {
+            background: var(--primary-color);
+            color: white;
+            width: 100%;
+        }
+
+        /* 成功/失败图标 */
+        .result-icon {
+            text-align: center;
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .result-message {
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        /* 兑换记录页 */
+        .record-page {
+            background: var(--bg-primary);
+            min-height: 100vh;
+        }
+
+        .record-list {
+            padding: 16px;
+        }
+
+        .record-item {
+            background: var(--bg-white);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        .record-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .record-name {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .record-points {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--error-color);
+        }
+
+        .record-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .record-time {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .record-use-btn {
+            font-size: 13px;
+            color: var(--primary-color);
+            cursor: pointer;
+            padding: 4px 12px;
+            border: 1px solid var(--primary-color);
+            border-radius: 12px;
+        }
+
+        /* 底部导航 */
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 390px;
+            display: flex;
+            background: var(--bg-white);
+            border-top: 1px solid var(--border-color);
+            padding: 8px 0;
+            z-index: 100;
+        }
+
+        .tab-item {
+            flex: 1;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .tab-icon {
+            font-size: 24px;
+            margin-bottom: 2px;
+        }
+
+        .tab-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .tab-item.active .tab-label {
+            color: var(--primary-color);
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .empty-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Toast提示 */
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 2000;
+            display: none;
+        }
+
+        .toast.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <!-- 状态栏 -->
+        <div class="status-bar">
+            <span>9:41</span>
+            <span>📶 🔋</span>
+        </div>
+
+        <!-- 优惠券页面 -->
+        <div class="page coupon-page active" id="couponPage">
+            <!-- 导航栏 -->
+            <div class="navbar">
+                <span class="navbar-back" onclick="showToast('返回上一页')">← 返回</span>
+                <span class="navbar-title">我的优惠券</span>
+                <span style="width: 60px;"></span>
+            </div>
+
+            <!-- 积分余额卡片 -->
+            <div class="points-card">
+                <div class="points-header">
+                    <span class="points-label">我的积分</span>
+                    <span class="points-record-link" onclick="showRecordPage()">查看兑换记录 →</span>
+                </div>
+                <div class="points-value">
+                    <span id="pointsBalance">1,250</span>
+                    <span class="points-unit">积分</span>
+                </div>
+            </div>
+
+            <!-- 分类切换 -->
+            <div class="category-tabs">
+                <div class="category-tab active" data-category="all" onclick="switchCategory('all')">全部</div>
+                <div class="category-tab" data-category="coffee" onclick="switchCategory('coffee')">咖啡券</div>
+                <div class="category-tab" data-category="store" onclick="switchCategory('store')">门店券</div>
+            </div>
+
+            <!-- 兑换商品列表 -->
+            <div class="products-section">
+                <div class="section-title">积分兑换</div>
+                <div class="product-list" id="productList">
+                    <!-- 商品卡片由JS动态生成 -->
+                </div>
+            </div>
+
+            <!-- 我的优惠券 -->
+            <div class="my-coupons-section">
+                <div class="section-title">我的优惠券</div>
+                <div class="coupon-list" id="couponList">
+                    <!-- 优惠券列表由JS动态生成 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 兑换记录页 -->
+        <div class="page record-page" id="recordPage">
+            <div class="navbar">
+                <span class="navbar-back" onclick="backToCouponPage()">← 返回</span>
+                <span class="navbar-title">兑换记录</span>
+                <span style="width: 60px;"></span>
+            </div>
+            <div class="record-list" id="recordList">
+                <!-- 记录列表由JS动态生成 -->
+            </div>
+        </div>
+
+        <!-- 底部导航 -->
+        <div class="tab-bar">
+            <div class="tab-item" onclick="showToast('首页')">
+                <div class="tab-icon">🏠</div>
+                <div class="tab-label">首页</div>
+            </div>
+            <div class="tab-item" onclick="showToast('分类')">
+                <div class="tab-icon">📋</div>
+                <div class="tab-label">分类</div>
+            </div>
+            <div class="tab-item active" onclick="showToast('优惠券')">
+                <div class="tab-icon">🎫</div>
+                <div class="tab-label">优惠券</div>
+            </div>
+            <div class="tab-item" onclick="showToast('购物车')">
+                <div class="tab-icon">🛒</div>
+                <div class="tab-label">购物车</div>
+            </div>
+            <div class="tab-item" onclick="showToast('我的')">
+                <div class="tab-icon">👤</div>
+                <div class="tab-label">我的</div>
+            </div>
+        </div>
+
+        <!-- 兑换确认弹窗 -->
+        <div class="modal-overlay" id="confirmModal">
+            <div class="modal">
+                <div class="modal-title">确认兑换</div>
+                <div class="modal-content">
+                    <div class="modal-row">
+                        <span class="modal-label">商品名称</span>
+                        <span class="modal-value" id="confirmName">-</span>
+                    </div>
+                    <div class="modal-row">
+                        <span class="modal-label">所需积分</span>
+                        <span class="modal-value highlight" id="confirmPoints">-</span>
+                    </div>
+                    <div class="modal-divider"></div>
+                    <div class="modal-row">
+                        <span class="modal-label">当前积分</span>
+                        <span class="modal-value" id="confirmCurrentPoints">-</span>
+                    </div>
+                    <div class="modal-row">
+                        <span class="modal-label">兑换后剩余</span>
+                        <span class="modal-value highlight" id="confirmRemaining">-</span>
+                    </div>
+                    <div class="modal-row">
+                        <span class="modal-label">有效期</span>
+                        <span class="modal-value" id="confirmValidity">-</span>
+                    </div>
+                    <div class="modal-row">
+                        <span class="modal-label">使用规则</span>
+                        <span class="modal-value" id="confirmRules" style="text-align: right; max-width: 60%;">-</span>
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-btn-cancel" onclick="closeModal('confirmModal')">取消</button>
+                    <button class="modal-btn modal-btn-confirm" onclick="confirmExchange()">确认兑换</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 兑换成功弹窗 -->
+        <div class="modal-overlay" id="successModal">
+            <div class="modal">
+                <div class="result-icon">✅</div>
+                <div class="modal-title">兑换成功</div>
+                <div class="result-message" id="successMessage">优惠券已发放至您的账户</div>
+                <button class="modal-btn modal-btn-single" onclick="closeModal('successModal')">我知道了</button>
+            </div>
+        </div>
+
+        <!-- 积分不足弹窗 -->
+        <div class="modal-overlay" id="insufficientModal">
+            <div class="modal">
+                <div class="result-icon">⚠️</div>
+                <div class="modal-title">积分不足</div>
+                <div class="result-message" id="insufficientMessage">当前积分不足，无法兑换</div>
+                <div class="modal-content" style="text-align: center; font-size: 13px; color: var(--text-secondary);">
+                    可通过以下方式获取积分：<br>
+                    • 在迪卡侬门店购物消费<br>
+                    • 参与会员活动签到
+                </div>
+                <button class="modal-btn modal-btn-single" onclick="closeModal('insufficientModal')">我知道了</button>
+            </div>
+        </div>
+
+        <!-- 库存不足弹窗 -->
+        <div class="modal-overlay" id="outOfStockModal">
+            <div class="modal">
+                <div class="result-icon">📦</div>
+                <div class="modal-title">已兑完</div>
+                <div class="result-message">该商品已兑完，敬请期待补货</div>
+                <button class="modal-btn modal-btn-single" onclick="closeModal('outOfStockModal')">我知道了</button>
+            </div>
+        </div>
+
+        <!-- 兑换失败弹窗 -->
+        <div class="modal-overlay" id="failModal">
+            <div class="modal">
+                <div class="result-icon">❌</div>
+                <div class="modal-title">兑换失败</div>
+                <div class="result-message" id="failMessage">网络异常，请重试</div>
+                <button class="modal-btn modal-btn-single" onclick="closeModal('failModal')">我知道了</button>
+            </div>
+        </div>
+
+        <!-- Toast提示 -->
+        <div class="toast" id="toast"></div>
+    </div>
+
+    <script>
+        // ==================== 数据模拟 ====================
+        
+        // 用户积分
+        let userPoints = 1250;
+
+        // 兑换商品列表
+        const products = [
+            {
+                id: 'COFFEE_001',
+                name: '免费美式咖啡券',
+                category: 'coffee',
+                points: 500,
+                stock: 200,
+                stockStatus: 'sufficient',
+                validDays: 30,
+                rules: '仅限堂食/外带，不可叠加',
+                icon: '☕'
+            },
+            {
+                id: 'COFFEE_002',
+                name: '免费拿铁咖啡券',
+                category: 'coffee',
+                points: 800,
+                stock: 150,
+                stockStatus: 'sufficient',
+                validDays: 30,
+                rules: '仅限堂食/外带，不可叠加',
+                icon: '🥛'
+            },
+            {
+                id: 'COFFEE_003',
+                name: '咖啡满减券(满30减10)',
+                category: 'coffee',
+                points: 300,
+                stock: 300,
+                stockStatus: 'sufficient',
+                validDays: 15,
+                rules: '满30元可用，不可叠加',
+                icon: '💰'
+            },
+            {
+                id: 'STORE_001',
+                name: '门店满200减30券',
+                category: 'store',
+                points: 1000,
+                stock: 100,
+                stockStatus: 'sufficient',
+                validDays: 30,
+                rules: '迪卡侬门店通用',
+                icon: '🏪'
+            },
+            {
+                id: 'STORE_002',
+                name: '门店满500减80券',
+                category: 'store',
+                points: 2000,
+                stock: 50,
+                stockStatus: 'low',
+                validDays: 30,
+                rules: '迪卡侬门店通用',
+                icon: '🎯'
+            },
+            {
+                id: 'STORE_003',
+                name: '运动袜兑换券',
+                category: 'store',
+                points: 600,
+                stock: 200,
+                stockStatus: 'sufficient',
+                validDays: 30,
+                rules: '指定款式，限1双',
+                icon: '🧦'
+            },
+            {
+                id: 'STORE_004',
+                name: '运动水壶兑换券',
+                category: 'store',
+                points: 1200,
+                stock: 100,
+                stockStatus: 'sufficient',
+                validDays: 30,
+                rules: '指定款式，限1个',
+                icon: '🥤'
+            },
+            {
+                id: 'STORE_005',
+                name: '运动毛巾兑换券',
+                category: 'store',
+                points: 400,
+                stock: 300,
+                stockStatus: 'sufficient',
+                validDays: 30,
+                rules: '指定款式，限1条',
+                icon: '🏋️'
+            }
+        ];
+
+        // 用户已有优惠券
+        let myCoupons = [
+            {
+                id: 'CPN_001',
+                name: '咖啡满减券(满20减5)',
+                expiry: '2026-05-15',
+                status: 'unused'
+            },
+            {
+                id: 'CPN_002',
+                name: '门店满100减15券',
+                expiry: '2026-05-20',
+                status: 'unused'
+            }
+        ];
+
+        // 兑换记录
+        let exchangeRecords = [
+            {
+                id: 'EXC_001',
+                productName: '免费美式咖啡券',
+                points: 500,
+                time: '2026-04-25 14:30',
+                couponStatus: 'unused',
+                couponId: 'CPN_003'
+            },
+            {
+                id: 'EXC_002',
+                productName: '运动毛巾兑换券',
+                points: 400,
+                time: '2026-04-20 10:15',
+                couponStatus: 'used',
+                couponId: 'CPN_004'
+            }
+        ];
+
+        // 当前选中的商品
+        let selectedProduct = null;
+
+        // 当前分类
+        let currentCategory = 'all';
+
+        // ==================== 页面渲染 ====================
+
+        // 渲染商品列表
+        function renderProducts() {
+            const productList = document.getElementById('productList');
+            const filteredProducts = currentCategory === 'all' 
+                ? products 
+                : products.filter(p => p.category === currentCategory);
+            
+            productList.innerHTML = filteredProducts.map(product => {
+                const canExchange = userPoints >= product.points && product.stockStatus !== 'empty';
+                const stockText = product.stockStatus === 'sufficient' ? '库存充足' 
+                    : product.stockStatus === 'low' ? '库存紧张' : '已兑完';
+                const stockClass = product.stockStatus === 'sufficient' ? 'stock-sufficient' 
+                    : product.stockStatus === 'low' ? 'stock-low' : 'stock-empty';
+                const btnClass = canExchange ? 'exchange-btn-primary' : 'exchange-btn-disabled';
+                const btnText = product.stockStatus === 'empty' ? '已兑完' 
+                    : userPoints < product.points ? '积分不足' : '立即兑换';
+                
+                return `
+                    <div class="product-card" onclick="handleExchangeClick('${product.id}')">
+                        <div class="product-image">${product.icon}</div>
+                        <div class="product-info">
+                            <div>
+                                <div class="product-name">${product.name}</div>
+                                <div class="product-rules">${product.rules}</div>
+                            </div>
+                            <div class="product-footer">
+                                <div class="product-points">
+                                    <span class="points-number">${product.points}</span>
+                                    <span class="points-text">积分</span>
+                                </div>
+                                <span class="product-stock ${stockClass}">${stockText}</span>
+                                <button class="exchange-btn ${btnClass}" onclick="event.stopPropagation(); handleExchangeClick('${product.id}')">${btnText}</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 渲染优惠券列表
+        function renderCoupons() {
+            const couponList = document.getElementById('couponList');
+            if (myCoupons.length === 0) {
+                couponList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🎫</div>
+                        <div class="empty-text">暂无可用优惠券</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            couponList.innerHTML = myCoupons.map(coupon => {
+                const statusText = coupon.status === 'unused' ? '未使用' 
+                    : coupon.status === 'used' ? '已使用' : '已过期';
+                const statusClass = coupon.status === 'unused' ? 'status-unused' 
+                    : coupon.status === 'used' ? 'status-used' : 'status-expired';
+                
+                return `
+                    <div class="coupon-item">
+                        <div class="coupon-icon">🎫</div>
+                        <div class="coupon-info">
+                            <div class="coupon-name">${coupon.name}</div>
+                            <div class="coupon-expiry">有效期至 ${coupon.expiry}</div>
+                        </div>
+                        <span class="coupon-status ${statusClass}">${statusText}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 渲染兑换记录
+        function renderRecords() {
+            const recordList = document.getElementById('recordList');
+            if (exchangeRecords.length === 0) {
+                recordList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📝</div>
+                        <div class="empty-text">暂无兑换记录</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            recordList.innerHTML = exchangeRecords.map(record => {
+                const statusText = record.couponStatus === 'unused' ? '未使用' 
+                    : record.couponStatus === 'used' ? '已使用' : '已过期';
+                const showUseBtn = record.couponStatus === 'unused';
+                
+                return `
+                    <div class="record-item">
+                        <div class="record-header">
+                            <span class="record-name">${record.productName}</span>
+                            <span class="record-points">-${record.points}积分</span>
+                        </div>
+                        <div class="record-footer">
+                            <span class="record-time">${record.time}</span>
+                            ${showUseBtn ? '<span class="record-use-btn" onclick="showToast(\'跳转至券详情页\')">去使用</span>' : `<span class="coupon-status ${record.couponStatus === 'unused' ? 'status-unused' : record.couponStatus === 'used' ? 'status-used' : 'status-expired'}">${statusText}</span>`}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ==================== 交互逻辑 ====================
+
+        // 切换分类
+        function switchCategory(category) {
+            currentCategory = category;
+            
+            // 更新Tab样式
+            document.querySelectorAll('.category-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.category === category);
+            });
+            
+            // 重新渲染商品列表
+            renderProducts();
+            
+            // 埋点
+            console.log('[埋点] category_switch:', { category });
+        }
+
+        // 处理兑换点击
+        function handleExchangeClick(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            // 埋点
+            console.log('[埋点] product_card_click:', { 
+                product_id: product.id, 
+                product_type: product.category, 
+                points_cost: product.points 
+            });
+            
+            // 检查库存
+            if (product.stockStatus === 'empty') {
+                showModal('outOfStockModal');
+                return;
+            }
+            
+            // 检查积分
+            if (userPoints < product.points) {
+                document.getElementById('insufficientMessage').textContent = 
+                    `当前${userPoints}积分，需要${product.points}积分`;
+                showModal('insufficientModal');
+                return;
+            }
+            
+            // 显示确认弹窗
+            selectedProduct = product;
+            document.getElementById('confirmName').textContent = product.name;
+            document.getElementById('confirmPoints').textContent = product.points + '积分';
+            document.getElementById('confirmCurrentPoints').textContent = userPoints + '积分';
+            document.getElementById('confirmRemaining').textContent = (userPoints - product.points) + '积分';
+            document.getElementById('confirmValidity').textContent = '兑换后' + product.validDays + '天内有效';
+            document.getElementById('confirmRules').textContent = product.rules;
+            
+            showModal('confirmModal');
+        }
+
+        // 确认兑换
+        function confirmExchange() {
+            if (!selectedProduct) return;
+            
+            // 埋点
+            console.log('[埋点] exchange_confirm_click:', { 
+                product_id: selectedProduct.id, 
+                points_cost: selectedProduct.points 
+            });
+            
+            closeModal('confirmModal');
+            
+            // 模拟API调用
+            setTimeout(() => {
+                // 扣减积分
+                userPoints -= selectedProduct.points;
+                document.getElementById('pointsBalance').textContent = userPoints.toLocaleString();
+                
+                // 减少库存
+                selectedProduct.stock -= 1;
+                if (selectedProduct.stock < 20) {
+                    selectedProduct.stockStatus = 'low';
+                }
+                
+                // 添加优惠券
+                const today = new Date();
+                const expiryDate = new Date(today.getTime() + selectedProduct.validDays * 24 * 60 * 60 * 1000);
+                myCoupons.unshift({
+                    id: 'CPN_' + Date.now(),
+                    name: selectedProduct.name,
+                    expiry: expiryDate.toISOString().split('T')[0],
+                    status: 'unused'
+                });
+                
+                // 添加兑换记录
+                exchangeRecords.unshift({
+                    id: 'EXC_' + Date.now(),
+                    productName: selectedProduct.name,
+                    points: selectedProduct.points,
+                    time: today.toISOString().replace('T', ' ').substring(0, 16),
+                    couponStatus: 'unused',
+                    couponId: myCoupons[0].id
+                });
+                
+                // 埋点
+                console.log('[埋点] exchange_success:', { 
+                    product_id: selectedProduct.id, 
+                    product_type: selectedProduct.category, 
+                    points_cost: selectedProduct.points,
+                    remaining_points: userPoints
+                });
+                
+                // 显示成功弹窗
+                document.getElementById('successMessage').textContent = 
+                    `${selectedProduct.name}已发放至您的账户`;
+                showModal('successModal');
+                
+                // 重新渲染列表
+                renderProducts();
+                renderCoupons();
+                
+                selectedProduct = null;
+            }, 500);
+        }
+
+        // 显示兑换记录页
+        function showRecordPage() {
+            document.getElementById('couponPage').classList.remove('active');
+            document.getElementById('recordPage').classList.add('active');
+            renderRecords();
+            
+            // 埋点
+            console.log('[埋点] exchange_record_view');
+        }
+
+        // 返回优惠券页面
+        function backToCouponPage() {
+            document.getElementById('recordPage').classList.remove('active');
+            document.getElementById('couponPage').classList.add('active');
+        }
+
+        // 显示弹窗
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        // 关闭弹窗
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Toast提示
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('active');
+            setTimeout(() => {
+                toast.classList.remove('active');
+            }, 2000);
+        }
+
+        // ==================== 初始化 ====================
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            renderProducts();
+            renderCoupons();
+            
+            // 埋点
+            console.log('[埋点] points_module_view');
+            console.log('[埋点] points_balance_show:', { balance: userPoints });
+        });
+    </script>
+</body>
+</html>
